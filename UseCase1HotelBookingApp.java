@@ -1,4 +1,7 @@
 
+=======
+
+
 import java.util.*;
 
 class Reservation {
@@ -30,6 +33,18 @@ class BookingQueue {
         queue.offer(reservation);
     }
 
+
+    public Reservation getNextRequest() {
+        return queue.poll();
+    }
+
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
+}
+
+class RoomInventory {
+=======
     public void displayQueue() {
         System.out.println("\n--- Booking Request Queue ---\n");
         for (Reservation r : queue) {
@@ -50,19 +65,73 @@ import java.util.Map;
 
 class RoomInventory {
 
+
     private final Map<String, Integer> inventory;
 
     public RoomInventory() {
         inventory = new HashMap<>();
+
+        inventory.put("Single Room", 2);
+        inventory.put("Double Room", 1);
+        inventory.put("Suite Room", 1);
+=======
         inventory.put("Single Room", 5);
         inventory.put("Double Room", 3);
         inventory.put("Suite Room", 2);
+
     }
 
     public int getAvailability(String roomType) {
         return inventory.getOrDefault(roomType, 0);
     }
 
+
+    public void reduceAvailability(String roomType) {
+        int current = inventory.getOrDefault(roomType, 0);
+        if (current > 0) {
+            inventory.put(roomType, current - 1);
+        }
+    }
+}
+
+class BookingService {
+    private final RoomInventory inventory;
+    private final Map<String, Set<String>> allocatedRooms;
+
+    public BookingService(RoomInventory inventory) {
+        this.inventory = inventory;
+        this.allocatedRooms = new HashMap<>();
+    }
+
+    public void processBookings(BookingQueue queue) {
+        while (!queue.isEmpty()) {
+            Reservation reservation = queue.getNextRequest();
+            String roomType = reservation.getRoomType();
+
+            if (inventory.getAvailability(roomType) > 0) {
+                String roomId = generateRoomId(roomType);
+
+                allocatedRooms.putIfAbsent(roomType, new HashSet<>());
+                allocatedRooms.get(roomType).add(roomId);
+
+                inventory.reduceAvailability(roomType);
+
+                System.out.println("Booking Confirmed -> Guest: " + reservation.getGuestName()
+                        + " | Room: " + roomType + " | Room ID: " + roomId);
+            } else {
+                System.out.println("Booking Failed (No Availability) -> Guest: "
+                        + reservation.getGuestName() + " | Room: " + roomType);
+            }
+        }
+    }
+
+    private String generateRoomId(String roomType) {
+        return roomType.substring(0, 2).toUpperCase() + "-" + UUID.randomUUID().toString().substring(0, 4);
+    }
+}
+
+public class UseCase6RoomAllocationService {
+=======
     public void updateAvailability(String roomType, int count) {
         int current = inventory.getOrDefault(roomType, 0);
         inventory.put(roomType, current + count);
@@ -161,7 +230,7 @@ class DoubleRoom extends Room {
 }
 
 class SuiteRoom extends Room {
-=======
+
         System.out.println("Room Type: " + roomType);
         System.out.println("Beds: " + beds);
         System.out.println("Price: ₹" + price);
@@ -218,9 +287,28 @@ class RoomSearchService {
 public class UseCase4RoomSearch {
 
 
+
     public static void main(String[] args) {
 
         System.out.println("=========== Book My Stay ===========");
+
+        System.out.println(" Hotel Booking System v6.0 ");
+        System.out.println("===================================");
+
+        BookingQueue queue = new BookingQueue();
+        RoomInventory inventory = new RoomInventory();
+
+        queue.addRequest(new Reservation("Arun", "Single Room"));
+        queue.addRequest(new Reservation("Priya", "Double Room"));
+        queue.addRequest(new Reservation("Rahul", "Suite Room"));
+        queue.addRequest(new Reservation("Sneha", "Single Room"));
+
+        BookingService service = new BookingService(inventory);
+
+        service.processBookings(queue);
+
+        System.out.println("\nAll requests processed.");
+=======
 
         System.out.println(" Hotel Booking System v5.0 ");
         System.out.println("===================================");
@@ -299,6 +387,7 @@ public class UseCase2RoomInitialization {
         System.out.println
         System.out.println("Your journey to comfortable stays begins here!");
         System.out.println("Application started successfully.");
+
 
 
     }
